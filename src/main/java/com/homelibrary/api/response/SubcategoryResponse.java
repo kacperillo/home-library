@@ -1,7 +1,6 @@
 package com.homelibrary.api.response;
 
 import com.homelibrary.model.Subcategory;
-import lombok.Builder;
 import lombok.Getter;
 
 @Getter

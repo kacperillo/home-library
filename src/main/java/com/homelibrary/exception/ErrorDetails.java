@@ -4,13 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatusCode;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @Getter
 public class ErrorDetails {
 
-    private Date timeStamp;
+    private LocalDateTime timeStamp;
     private HttpStatusCode httpStatusCode;
     private String message;
 }

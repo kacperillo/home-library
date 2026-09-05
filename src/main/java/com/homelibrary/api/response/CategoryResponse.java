@@ -1,8 +1,6 @@
 package com.homelibrary.api.response;
 
-import com.homelibrary.model.Book;
 import com.homelibrary.model.Category;
-import com.homelibrary.model.Subcategory;
 import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,29 +10,20 @@ public class CategoryResponse {
 
   private final Integer categoryId;
   private final String categoryName;
-  private final List<SubcategoryRecord> subcategories;
-  private final List<BookRecord> books;
+  private final List<SubcategoryResponse> subcategories;
 
   public CategoryResponse(Category category) {
     categoryId = category.getId();
     categoryName = category.getName();
-    subcategories = new ArrayList<>();
-    books = new ArrayList<>();
-    getSubcategories(category);
-    getBooks(category);
+    subcategories = getSubcategories(category);
   }
 
-  private void getSubcategories(Category category) {
-    List<Subcategory> subcategoryModelList = category.getSubcategories();
-    subcategoryModelList.forEach(s -> subcategories.add(new SubcategoryRecord(s.getId(), s.getName())));
+  private List<SubcategoryResponse> getSubcategories(Category category) {
+    List<SubcategoryResponse> subcategoryResponseList = new ArrayList<>();
+    category.getSubcategories().forEach(subcategory -> {
+      SubcategoryResponse subcategoryResponse = new SubcategoryResponse(subcategory);
+      subcategoryResponseList.add(subcategoryResponse);
+    });
+    return subcategoryResponseList;
   }
-
-  private void getBooks(Category category) {
-    List<Book> bookModelList = category.getBooks();
-    bookModelList.forEach(b -> books.add(new BookRecord(b.getId(), b.getTitle(), b.getSubcategory().getId(),
-            b.getSubcategory().getName(), AuthorRecord.getAuthors(b.getAuthors()), b.getPriority().getValue())));
-  }
-
-  private record BookRecord(Integer bookId, String title, Integer subcategoryId, String subcategoryName,
-                            List<AuthorRecord> authors, Integer priority){}
 }

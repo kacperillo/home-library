@@ -1,14 +1,11 @@
 package com.homelibrary.service;
 
-import com.homelibrary.api.request.AuthorRequest;
 import com.homelibrary.api.request.BookRequest;
-import com.homelibrary.api.request.ChangePriorityRequest;
+import com.homelibrary.api.request.BookUpdateRequest;
 import com.homelibrary.api.response.BookResponse;
 import com.homelibrary.exception.HomeLibraryException;
 import com.homelibrary.model.*;
-import com.homelibrary.repository.AuthorRepository;
 import com.homelibrary.repository.BookRepository;
-import com.homelibrary.repository.CategoryRepository;
 import com.homelibrary.repository.SubcategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,24 +22,20 @@ import java.util.List;
 public class BookService {
 
   private final BookRepository bookRepository;
-  private final AuthorRepository authorRepository;
-  private final CategoryRepository categoryRepository;
   private final SubcategoryRepository subcategoryRepository;
 
   public BookResponse addBook(BookRequest bookRequest) {
-    Category category = getCategoryFromRequest(bookRequest);
-    Subcategory subcategory = getSubcategoryFromRequest(bookRequest, category);
-    Priority priority = getPriorityFromRequest(bookRequest);
+    Subcategory subcategory = findSubcategory(bookRequest.getSubcategoryId());
+    Priority priority = bookRequest.getPriority() != null ?
+            findPriority(bookRequest.getPriority()) : Priority.defaultPriority;
 
     Book book = Book.builder()
             .title(bookRequest.getTitle())
-            .category(category)
+            .authors(bookRequest.getAuthors())
             .subcategory(subcategory)
             .priority(priority)
             .build();
 
-    List<Author> authors = getAuthorsFromRequest(bookRequest);
-    linkAuthorsAndBook(authors, book);
     book = bookRepository.save(book);
     return new BookResponse(book);
   }
@@ -70,109 +63,55 @@ public class BookService {
        bookPage = bookRepository.findAll(pageable);
     }
     List<Book> books = bookPage.getContent();
-
-    List<BookResponse> responses = new ArrayList<>();
-    books.forEach(book -> responses.add(new BookResponse(book)));
-    return responses;
+    List<BookResponse> bookListResponse = new ArrayList<>();
+    books.forEach(book -> bookListResponse.add(new BookResponse(book)));
+    return bookListResponse;
   }
 
-  public void deleteBook(Integer bookId) {
+  public BookResponse updateBook(Integer bookId, BookUpdateRequest bookUpdateRequest) {
     Book book = findBook(bookId);
-    unlinkAuthorsFromBook(book);
-    removeSubcategoryIfEmpty(book.getSubcategory());
-    removeCategoryIfEmpty(book.getCategory());
-    bookRepository.delete(book);
-  }
 
-  public BookResponse changeBookPriority(Integer bookId, ChangePriorityRequest changePriorityRequest) {
-    Book book = findBook(bookId);
-    try {
-      Priority priority = Priority.fromValue(changePriorityRequest.getPriority());
-      book.setPriority(priority);
-    } catch (IllegalArgumentException ex) {
-      throw new HomeLibraryException(HttpStatus.BAD_REQUEST, "Invalid priority");
+    if (book.getSubcategory().getId() == bookUpdateRequest.getSubcategoryId() &&
+        book.getPriority().getValue() == bookUpdateRequest.getPriority()) {
+      throw new HomeLibraryException(HttpStatus.CONFLICT, "No change detected");
     }
+
+    if (book.getSubcategory().getId() != bookUpdateRequest.getSubcategoryId()) {
+      Subcategory newSubcategory = findSubcategory(bookUpdateRequest.getSubcategoryId());
+      book.setSubcategory(newSubcategory);
+    }
+
+    if (book.getPriority().getValue() != bookUpdateRequest.getPriority()) {
+      Priority newPriority = findPriority(bookUpdateRequest.getPriority());
+      book.setPriority(newPriority);
+    }
+
     book = bookRepository.save(book);
     return new BookResponse(book);
   }
 
-  private Category getCategoryFromRequest(BookRequest bookRequest) {
-    Category category = categoryRepository.findByName(bookRequest.getCategory()).orElse(null);
-    if (category == null) {
-      category = new Category(bookRequest.getCategory());
-      categoryRepository.save(category);
-    }
-    return category;
-  }
-
-  private Subcategory getSubcategoryFromRequest(BookRequest bookRequest, Category category) {
-    Subcategory subcategory = subcategoryRepository.findByName(bookRequest.getSubcategory()).orElse(null);
-    if (subcategory == null) {
-      subcategory = new Subcategory(bookRequest.getSubcategory(), category);
-      subcategoryRepository.save(subcategory);
-    } else {
-      if (subcategory.getCategory() != category) {
-        throw new HomeLibraryException(HttpStatus.BAD_REQUEST, "Given subcategory does not belong to given category");
-      }
-    }
-    return subcategory;
-  }
-
-  private Priority getPriorityFromRequest(BookRequest bookRequest) {
-    try {
-        return bookRequest.getPriority() != null
-              ? Priority.fromValue(bookRequest.getPriority())
-              : Priority.defaultPriority;
-    } catch (IllegalArgumentException ex) {
-      throw new HomeLibraryException(HttpStatus.BAD_REQUEST, "Invalid priority");
-    }
-  }
-
-  private List<Author> getAuthorsFromRequest(BookRequest bookRequest) {
-    List<Author> authors = new ArrayList<>();
-    for (AuthorRequest authorRequest : bookRequest.getAuthors()) {
-      Author author = authorRepository.findByFirstNameAndLastName(authorRequest.firstName(), authorRequest.lastName())
-                      .orElse(null);
-      if (author == null) {
-        author = new Author(authorRequest.firstName(), authorRequest.lastName());
-        authorRepository.save(author);
-      }
-      authors.add(author);
-    }
-    return authors;
-  }
-
-  private void linkAuthorsAndBook(List<Author> authors, Book book) {
-    for (Author author : authors) {
-      author.addBook(book);
-    }
-    book.setAuthors(authors);
-  }
-
-  private void unlinkAuthorsFromBook(Book book) {
-    for (Author author : book.getAuthors()) {
-      author.removeBook(book);
-      if (author.getBooks().isEmpty()) {
-        authorRepository.delete(author);
-      }
-    }
-  }
-
-  private void removeSubcategoryIfEmpty(Subcategory subcategory) {
-    if (subcategory.getBooks().isEmpty()) {
-      subcategoryRepository.delete(subcategory);
-    }
-  }
-
-  private void removeCategoryIfEmpty(Category category) {
-    if (category.getBooks().isEmpty()) {
-      categoryRepository.delete(category);
-    }
+  public void deleteBook(Integer bookId) {
+    Book book = findBook(bookId);
+    bookRepository.delete(book);
   }
 
   private Book findBook(Integer bookId) {
     return bookRepository.findById(bookId)
             .orElseThrow(() -> new HomeLibraryException(
                     HttpStatus.NOT_FOUND, "Book with given ID does not exist"));
+  }
+
+  private Subcategory findSubcategory(Integer subcategoryId) {
+    return subcategoryRepository.findById(subcategoryId)
+            .orElseThrow(() -> new HomeLibraryException(
+                    HttpStatus.NOT_FOUND, "Subcategory with given ID does not exist"));
+  }
+
+  private Priority findPriority(int value) {
+    try {
+      return Priority.fromValue(value);
+    } catch (IllegalArgumentException e) {
+      throw new HomeLibraryException(HttpStatus.BAD_REQUEST, "Invalid priority");
+    }
   }
 }

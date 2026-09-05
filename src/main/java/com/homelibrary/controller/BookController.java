@@ -1,9 +1,10 @@
 package com.homelibrary.controller;
 
 import com.homelibrary.api.request.BookRequest;
-import com.homelibrary.api.request.ChangePriorityRequest;
+import com.homelibrary.api.request.BookUpdateRequest;
 import com.homelibrary.api.response.BookResponse;
 import com.homelibrary.service.BookService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class BookController {
   private final BookService bookService;
 
   @PostMapping
-  public ResponseEntity<BookResponse> addBook(@RequestBody BookRequest bookRequest) {
+  public ResponseEntity<BookResponse> addBook(@Valid @RequestBody BookRequest bookRequest) {
     BookResponse bookResponse = bookService.addBook(bookRequest);
     return ResponseEntity.status(HttpStatus.CREATED).body(bookResponse);
   }
@@ -42,9 +43,9 @@ public class BookController {
   }
 
   @PatchMapping("/{bookId}")
-  public ResponseEntity<BookResponse> changeBookPriority(
-          @PathVariable Integer bookId, @RequestBody ChangePriorityRequest changePriorityRequest) {
-    BookResponse bookResponse = bookService.changeBookPriority(bookId, changePriorityRequest);
+  public ResponseEntity<BookResponse> updateBook(
+          @PathVariable Integer bookId, @RequestBody BookUpdateRequest bookUpdateRequest) {
+    BookResponse bookResponse = bookService.updateBook(bookId, bookUpdateRequest);
     return ResponseEntity.ok().body(bookResponse);
   }
 

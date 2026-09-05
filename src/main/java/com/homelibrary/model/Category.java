@@ -35,8 +35,4 @@ public class Category {
     }
     return books;
   }
-
-  public void addSubcategory(Subcategory subcategory) {
-    subcategories.add(subcategory);
-  }
 }

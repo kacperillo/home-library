@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   mysql:
     container_name: mysql
@@ -26,7 +24,7 @@ services:
       - ./src/main/resources/data.sql:/sql/data.sql
 
   app:
-    image: home-library
+    image: kacperillo/home-library
     build: .
     ports:
       - "8080:8080"

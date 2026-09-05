@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home-library-app
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: home-library-app
+  template:
+    metadata:
+      labels:
+        app: home-library-app
+    spec:
+      containers:
+        - name: home-library-app
+          image: kacperillo/home-library:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MYSQL_HOST
+              value: "mysql.default"
+            - name: MYSQL_USER
+              value: "root"
+            - name: MYSQL_PASSWORD
+              value: "root"

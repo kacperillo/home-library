@@ -13,7 +13,7 @@ public enum Priority {
     this.value = value;
   }
 
-  public static Priority fromValue(int value) {
+  public static Priority fromValue(int value) throws IllegalArgumentException {
     for (Priority priority : Priority.values()) {
       if (value == priority.getValue()) {
         return priority;

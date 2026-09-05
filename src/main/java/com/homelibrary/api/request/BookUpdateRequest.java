@@ -2,13 +2,9 @@ package com.homelibrary.api.request;
 
 import lombok.Getter;
 
-import java.util.List;
-
 @Getter
-public class BookRequest {
+public class BookUpdateRequest {
 
-  private String title;
-  private List<String> authors;
   private Integer subcategoryId;
   private Integer priority;
 }

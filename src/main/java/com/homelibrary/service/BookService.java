@@ -79,11 +79,6 @@ public class BookService {
   public BookResponse updateBook(Integer bookId, BookUpdateRequest request) {
     Book book = findBook(bookId);
 
-    if (book.getSubcategory().getId().equals(request.getSubcategoryId()) &&
-        book.getPriority().getValue() == request.getPriority()) {
-      throw new HomeLibraryException(HttpStatus.BAD_REQUEST, "No change detected");
-    }
-
     if (!book.getSubcategory().getId().equals(request.getSubcategoryId())) {
       Subcategory newSubcategory = findSubcategory(request.getSubcategoryId());
       book.setSubcategory(newSubcategory);

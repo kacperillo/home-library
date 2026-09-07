@@ -3,6 +3,7 @@ package com.homelibrary.controller;
 import com.homelibrary.api.request.BookRequest;
 import com.homelibrary.api.request.BookUpdateRequest;
 import com.homelibrary.api.response.BookResponse;
+import com.homelibrary.api.response.BookResponsePage;
 import com.homelibrary.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/books")
@@ -26,14 +26,14 @@ public class BookController {
   }
 
   @GetMapping
-  public ResponseEntity<List<BookResponse>> getAllBooks(
+  public ResponseEntity<BookResponsePage> getAllBooks(
           @RequestParam(required = false, defaultValue = "0") int pageNo,
-          @RequestParam(required = false, defaultValue = "50") int pageSize,
+          @RequestParam(required = false, defaultValue = "20") int pageSize,
           @RequestParam(required = false, defaultValue = "title") String sortParam,
           @RequestParam(required = false, defaultValue = "asc") String sortDir,
-          @RequestParam(required = false) Integer priority) {
-    List<BookResponse> booksDto = bookService.getAllBooks(pageNo, pageSize, sortParam, sortDir, priority);
-    return ResponseEntity.ok().body(booksDto);
+          @RequestParam(required = false) Integer categoryId) {
+    BookResponsePage bookResponsePage = bookService.getAllBooks(pageNo, pageSize, sortParam, sortDir, categoryId);
+    return ResponseEntity.ok().body(bookResponsePage);
   }
 
   @GetMapping("/{bookId}")
@@ -42,7 +42,7 @@ public class BookController {
     return ResponseEntity.ok().body(bookResponse);
   }
 
-  @PatchMapping("/{bookId}")
+  @PutMapping("/{bookId}")
   public ResponseEntity<BookResponse> updateBook(
           @PathVariable Integer bookId, @RequestBody BookUpdateRequest bookUpdateRequest) {
     BookResponse bookResponse = bookService.updateBook(bookId, bookUpdateRequest);

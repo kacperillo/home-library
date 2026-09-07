@@ -1,5 +1,6 @@
 package com.homelibrary.api.response;
 
+import com.homelibrary.model.Author;
 import com.homelibrary.model.Book;
 import com.homelibrary.model.Category;
 import com.homelibrary.model.Subcategory;
@@ -22,7 +23,7 @@ public class BookResponse {
   public BookResponse(Book book) {
     bookId = book.getId();
     title = book.getTitle();
-    authors = book.getAuthors();
+    authors = book.getAuthors().stream().map(Author::getName).toList();
     Category category = book.getCategory();
     categoryId = category.getId();
     categoryName = category.getName();

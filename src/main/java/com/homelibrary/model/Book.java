@@ -20,8 +20,8 @@ public class Book {
   @Column(nullable = false)
   private String title;
 
-  @Column(nullable = false)
-  private List<String> authors;
+  @ManyToMany(fetch = FetchType.EAGER, mappedBy = "books")
+  private List<Author> authors;
 
   @ManyToOne
   private Subcategory subcategory;

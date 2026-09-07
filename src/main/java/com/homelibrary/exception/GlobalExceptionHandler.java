@@ -15,13 +15,6 @@ import java.time.LocalDateTime;
 @Slf4j
 public class GlobalExceptionHandler {
 
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<?> handleException(Exception e) {
-    log.error("Exception raised: {}", e.getMessage());
-    return ResponseEntity.internalServerError()
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(new ErrorDetails(LocalDateTime.now(), HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage()));
-  }
 
   @ExceptionHandler(HomeLibraryException.class)
   public ResponseEntity<?> handleException(HomeLibraryException e) {

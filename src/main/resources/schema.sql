@@ -18,7 +18,7 @@ CREATE TABLE `subcategory`
 (
     `id`          bigint        NOT NULL AUTO_INCREMENT,
     `name`        varchar(255)  NOT NULL,
-    `category_id` bigint        DEFAULT NULL,
+    `category_id` bigint        NOT NULL,
     PRIMARY KEY (`id`),
     FOREIGN KEY (`category_id`) REFERENCES `category` (`id`)
 );
@@ -26,8 +26,7 @@ CREATE TABLE `subcategory`
 CREATE TABLE `author`
 (
     `id`         bigint       NOT NULL AUTO_INCREMENT,
-    `first_name` varchar(255) NOT NULL,
-    `last_name`  varchar(255) NOT NULL,
+    `name`       varchar(255) NOT NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -36,10 +35,8 @@ CREATE TABLE `book`
     `id`             bigint        NOT NULL AUTO_INCREMENT,
     `priority`       tinyint       DEFAULT 1,
     `title`          varchar(255)  NOT NULL,
-    `category_id` bigint           DEFAULT NULL,
-    `subcategory_id` bigint        DEFAULT NULL,
+    `subcategory_id` bigint        NOT NULL,
     PRIMARY KEY (`id`),
-    FOREIGN KEY (`category_id`)    REFERENCES `category` (`id`),
     FOREIGN KEY (`subcategory_id`) REFERENCES `subcategory` (`id`)
 );
 

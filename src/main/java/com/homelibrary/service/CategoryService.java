@@ -1,11 +1,15 @@
 package com.homelibrary.service;
 
+import com.homelibrary.api.request.CategoryRequest;
+import com.homelibrary.api.request.UpdateNameRequest;
 import com.homelibrary.api.response.CategoryResponse;
 import com.homelibrary.exception.HomeLibraryException;
 import com.homelibrary.model.Category;
+import com.homelibrary.repository.BookRepository;
 import com.homelibrary.repository.CategoryRepository;
 
-import com.homelibrary.repository.SubcategoryRepository;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,13 +19,14 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CategoryService {
 
   private final CategoryRepository categoryRepository;
-  private final SubcategoryRepository subcategoryRepository;
+  private final BookRepository bookRepository;
 
-  public CategoryResponse addCategory(String categoryName) {
-    Category category = new Category(categoryName);
+  public CategoryResponse addCategory(@Valid CategoryRequest request) {
+    Category category = new Category(request.getCategoryName());
     category = categoryRepository.save(category);
     return new CategoryResponse(category);
   }
@@ -33,29 +38,30 @@ public class CategoryService {
     return categoryResponseList;
   }
 
-  public CategoryResponse updateCategoryName(Integer categoryId, String newCategoryName) {
+  public CategoryResponse updateCategoryName(Integer categoryId, UpdateNameRequest request) {
     Category category = findCategory(categoryId);
-    if (category.getName() == newCategoryName) {
-      throw new HomeLibraryException(HttpStatus.CONFLICT, "Category name is the same");
+    if (category.getName().equals(request.getUpdatedName())) {
+      throw new HomeLibraryException(HttpStatus.BAD_REQUEST, "Category name is the same");
     }
-    category.setName(newCategoryName);
+    category.setName(request.getUpdatedName());
     category = categoryRepository.save(category);
     return new CategoryResponse(category);
   }
 
   public void deleteCategory(Integer categoryId) {
-    Category category = findCategory(categoryId);
-    if (!category.getBooks().isEmpty()) {
-      throw new HomeLibraryException(
-              HttpStatus.CONFLICT, "Category cannot be deleted because it contains books");
+    if (!categoryRepository.existsById(categoryId)) {
+      throw new HomeLibraryException(HttpStatus.NOT_FOUND, "Category with given ID does not exist");
     }
-    category.getSubcategories().forEach(subcategoryRepository::delete);
-    categoryRepository.delete(category);
+
+    if (bookRepository.existsBySubcategoryCategoryId(categoryId)) {
+      throw new HomeLibraryException(HttpStatus.CONFLICT, "Category cannot be deleted because it contains books");
+    }
+    categoryRepository.deleteById(categoryId);
   }
 
   private Category findCategory(Integer categoryId) {
     return categoryRepository.findById(categoryId)
-            .orElseThrow(() -> new HomeLibraryException(
-                    HttpStatus.NOT_FOUND, "Category with given ID does not exist"));
+        .orElseThrow(() -> new HomeLibraryException(
+            HttpStatus.NOT_FOUND, "Category with given ID does not exist"));
   }
 }

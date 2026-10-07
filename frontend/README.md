@@ -46,17 +46,19 @@ src/
     DeleteConfirmModal.jsx potwierdzenie usunięcia
 ```
 
-## Które filtry działają gdzie
+## Filtry
 
-- **Kategoria** — filtr po stronie API (`GET /books?categoryId=`). Zmiana wywołuje nowe
-  żądanie i resetuje numer strony.
-- **Subkategorie** — filtr po stronie przeglądarki, zawężający już pobraną stronę wyników.
-  Dlatego można zaznaczyć kilka pozycji naraz, a brak zaznaczenia oznacza „wszystkie”.
-  Lista jest pusta, dopóki nie wybrano kategorii.
+Oba filtry są przetwarzane po stronie API, więc stronicowanie i licznik pozycji u dołu
+odnoszą się zawsze do przefiltrowanego wyniku.
 
-Konsekwencja tego podziału: filtr subkategorii działa w obrębie bieżącej strony, więc przy
-włączonym filtrze liczba widocznych wierszy bywa mniejsza niż rozmiar strony, a licznik stron
-u dołu nadal odnosi się do wyniku z API.
+- **Kategoria** — jedna wartość, `GET /books?categoryId=`.
+- **Subkategorie** — wiele wartości naraz, `GET /books?categoryId=&subcategoryIds=1&subcategoryIds=2`
+  (API przyjmuje też formę `subcategoryIds=1,2`). Brak zaznaczenia oznacza „wszystkie”.
+  Lista jest pusta, dopóki nie wybrano kategorii, dzięki czemu wysyłane są tylko subkategorie
+  należące do wybranej kategorii — API i tak to weryfikuje i odrzuca niezgodne (400) lub
+  nieistniejące (404) identyfikatory.
+
+Zmiana dowolnego filtru wywołuje nowe żądanie i resetuje numer strony.
 
 ## Priorytety
 

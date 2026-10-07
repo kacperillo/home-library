@@ -17,3 +17,31 @@ To do that, go to the folder of the cloned repository, open terminal and run:
 docker compose up
 ```
 
+
+## Running locally
+
+Backend (from the repository root, needs MySQL on `localhost:3306`):
+
+```bash
+mvn spring-boot:run
+```
+
+Frontend (in a second terminal):
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Backend runs on `http://localhost:8080`, frontend on `http://localhost:5173`.
+
+Desktop client (Swing, connects straight to the API — no CORS or proxy needed):
+
+```bash
+cd desktop
+mvn package
+java -jar target/home-library-desktop.jar          # or pass the API URL as the first argument
+```
+
+See [desktop/README.md](desktop/README.md) for details. A deliberately minimal variant of the same client lives in [desktop-simple/](desktop-simple/) (`cd desktop-simple && mvn package && java -jar target/home-library-desktop-simple.jar`).

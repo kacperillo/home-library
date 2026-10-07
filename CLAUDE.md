@@ -17,6 +17,8 @@ mvn test                   # no test sources exist yet; src/test is absent
 mvn test -Dtest=BookServiceTest#addBook   # single test / single method, once tests exist
 ```
 
+A Swing desktop client lives in `desktop/` as a separate Maven project (`cd desktop && mvn package && java -jar target/home-library-desktop.jar`). It mirrors the React `frontend/` file-for-file (see `desktop/README.md`) and talks to the API directly. `desktop-simple/` is a second, deliberately minimal Swing client (7 files, widgets hold state, `JOptionPane` dialogs) — prefer it as the template for further desktop work.
+
 Docker (from repo root):
 
 ```bash
